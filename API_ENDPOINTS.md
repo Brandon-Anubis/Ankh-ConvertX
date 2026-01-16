@@ -46,7 +46,7 @@
 | GET | `/` | Conditional* | None | HTML page | `src/pages/root.tsx:19` | Home page with file upload form |
 | GET | `/healthcheck` | No | None | `{ status: "ok" }` | `src/pages/healthcheck.tsx:4` | Health check endpoint for monitoring |
 | GET | `/converters` | Yes | None | HTML page | `src/pages/listConverters.tsx:8` | Lists all available converters |
-| POST | `/conversions` | No | `{ fileType: string }` | HTML fragment | `src/pages/chooseConverter.tsx:5` | Returns converter options for a file type |
+| POST | `/conversions` | Optional** | `{ fileType: string }` | HTML fragment | `src/pages/chooseConverter.tsx:5` | Returns converter options for a file type, typically used within authenticated workflow |
 
 ### File Upload & Conversion Endpoints
 
@@ -81,6 +81,8 @@
 | GET | `/*` | No | None | Static files | `src/index.tsx:36` | Serves files from `/public` directory |
 
 **Conditional Auth*: The `/` endpoint requires auth unless `ALLOW_UNAUTHENTICATED=true`
+
+**Optional Auth**: The `/conversions` endpoint doesn't enforce authentication but is typically used within an authenticated session (e.g., from the home page)
 
 ---
 
@@ -253,17 +255,18 @@ HTTP Status: 401
 
 ### 5.5 Get Converter Options for File Type
 
-**Happy Path:**
+**Happy Path (without authentication):**
 ```bash
 curl -X POST http://localhost:3000/conversions \
   -H "Content-Type: application/json" \
   -d '{
     "fileType": "png"
-  }' \
-  -b cookies.txt
+  }'
 ```
 
 **Expected Response:** HTML fragment with converter options
+
+**Note:** This endpoint doesn't require authentication, but is typically called from within an authenticated session on the home page.
 
 ### 5.6 Upload File for Conversion
 
@@ -589,12 +592,16 @@ For programmatic access:
 ## 12. Deployment Notes
 
 ### Docker Deployment
+
+**Original Upstream Repository (C4illin/ConvertX):**
 ```bash
 docker run -p 3000:3000 \
   -v ./data:/app/data \
   -e JWT_SECRET=your-secret-key \
   ghcr.io/c4illin/convertx:latest
 ```
+
+**Note:** This is a fork of the original ConvertX project. The upstream repository is `C4illin/ConvertX`.
 
 ### Environment Setup
 - Set `JWT_SECRET` for production (strongly recommended)
